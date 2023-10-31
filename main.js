@@ -40,28 +40,28 @@ class Text2Command extends utils.Adapter {
             blindsUpDown:       devicesControl.controlBlinds,
             userDeviceControl:  simpleControl.userDeviceControl,
             sendText:           simpleControl.sendText,
-    /*        openLock:           openLock,*/
+            /* openLock:           openLock,*/
             userQuery:          simpleControl.userQuery,
             buildAnswer:        simpleControl.buildAnswer
         };
-    
+
         // read system configuration
         const obj = await this.getForeignObjectAsync('system.config');
 
         systemConfig = (obj ? obj.common : {}) || {};
         simpleControl.init(systemConfig, adapter);
-    
+
         // read all enums
         const enums = await this.getEnumsAsync('');
         devicesControl.init(enums, adapter);
-    
+
         await this.subscribeForeignObjectsAsync('enum.*');
 
         if (this.config.processorId) {
             await this.subscribeForeignStatesAsync(this.config.processorId);
         }
 
-        this.subscribeStates(this.namespace + '.text')
+        await this.subscribeStatesAsync('text')
     }
 
     /**
@@ -149,33 +149,33 @@ class Text2Command extends utils.Adapter {
             })
             .catch(err => this.log.error(err));
     }
-    
+
     useExternalProcessor() {
         if (!processTimeout && processQueue.length) {
             let task = processQueue[0];
-    
+
             // send task to external processor
             this.setForeignState(this.config.processorId, JSON.stringify(task));
-    
+
             // wait x seconds for answer
             processTimeout = setTimeout(() => {
                 processTimeout = null;
-    
+
                 // no answer in given period
                 let _task = processQueue.shift();
-    
+
                 // process with rules
                 processText((_task.withLanguage ? `${_task.language};` : '') + _task.command, _task.callback, null, null, true);
-    
+
                 // process next
                 useExternalProcessor();
             }, this.config.processorTimeout || 1000);
         }
     }
-    
+
     processText(cmd, cb, messageObj, from, afterProcessor) {
         this.log.info(`processText: "${cmd}"`);
-    
+
         let lang = this.config.language || systemConfig.language || 'en';
         if (cmd === null || cmd === undefined) {
             this.log.error('processText: invalid command!');
@@ -204,13 +204,13 @@ class Text2Command extends utils.Adapter {
         // if desired processing by javascript
         if (!afterProcessor && this.config.processorId) {
             let task = messageObj || {};
-    
+
             task.language     = lang;
             task.command      = originalCmd;
             task.withLanguage = withLang;
             task.from         = from;
             task.callback     = cb;
-    
+
             if (processQueue.length < 100) {
                 processQueue.push(task);
                 return useExternalProcessor();
@@ -220,27 +220,27 @@ class Text2Command extends utils.Adapter {
         } else if (afterProcessor) {
             this.log.warn(`Timeout for external processor: ${this.config.processorId}`);
         }
-    
+
         let matchedRules = model.findMatched(cmd, rules);
         let result = '';
         let count = matchedRules.length;
-    
+
         for (let m = 0; m < matchedRules.length; m++) {
             if (model.commands[rules[matchedRules[m]].template] && model.commands[rules[matchedRules[m]].template].extractText) {
                 cmd = simpleControl.extractText(cmd, originalCmd, rules[matchedRules[m]].words);
             }
-    
+
             if (commandsCallbacks[rules[matchedRules[m]].template]) {
                 commandsCallbacks[rules[matchedRules[m]].template](lang, cmd, rules[matchedRules[m]].args, rules[matchedRules[m]].ack, response => {
                     this.log.info(`Response: ${response}`);
-    
+
                     // somehow combine answers
                     if (response) {
                         result += (result ? ', ' : '') + response;
                     }
-    
+
                     this.config.writeEveryAnswer && this.setState('response', response, true);
-    
+
                     if (!--count) {
                         cb && cb(result ? ((withLang ? `${lang};` : '') + result) : '');
                         cb = null;
@@ -253,7 +253,7 @@ class Text2Command extends utils.Adapter {
                 }
             }
         }
-    
+
         if (!matchedRules.length) {
             if (!this.config.noNegativeMessage) {
                 simpleAnswers.sayIDontUnderstand(lang, cmd, null, null, result => {
