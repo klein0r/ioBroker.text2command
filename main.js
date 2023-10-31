@@ -2,7 +2,7 @@
 
 const utils           = require('@iobroker/adapter-core');
 const adapterName     = require('./package.json').name.split('.').pop();
-//noinspection JSUnresolvedFunction
+
 const model           = require('./admin/langModel');
 const devicesControl  = require('./lib/devicesControl');
 const simpleControl   = require('./lib/simpleControl');
@@ -31,7 +31,6 @@ class Text2Command extends utils.Adapter {
 
     async onReady() {
         rules = this.config.rules || {};
-        //noinspection JSUnresolvedVariable
         commandsCallbacks = {
             whatTimeIsIt:       simpleControl.sayTime,
             whatIsYourName:     simpleControl.sayName,
@@ -47,22 +46,18 @@ class Text2Command extends utils.Adapter {
         };
     
         // read system configuration
-        //noinspection JSUnresolvedFunction
         const obj = await this.getForeignObjectAsync('system.config');
-        //noinspection JSUnresolvedVariable
+
         systemConfig = (obj ? obj.common : {}) || {};
         simpleControl.init(systemConfig, adapter);
     
         // read all enums
-        //noinspection JSUnresolvedFunction
         const enums = await this.getEnumsAsync('');
         devicesControl.init(enums, adapter);
     
-        //noinspection JSUnresolvedFunction
         await this.subscribeForeignObjectsAsync('enum.*');
-        //noinspection JSUnresolvedVariable
+
         if (this.config.processorId) {
-            //noinspection JSUnresolvedFunction,JSUnresolvedVariable
             await this.subscribeForeignStatesAsync(this.config.processorId);
         }
 
@@ -113,11 +108,9 @@ class Text2Command extends utils.Adapter {
      */
     onMessage(obj) {
         if (obj) {
-            //noinspection JSUnresolvedVariable
             switch (obj.command) {
                 case 'send':
                     if (obj.message) {
-                        //noinspection JSUnresolvedVariable
                         processText(typeof obj.message === 'object' ? obj.message.text : obj.message, res => {
                             let responseObj = JSON.parse(JSON.stringify(obj.message));
                             if (typeof responseObj !== 'object') {
@@ -127,7 +120,6 @@ class Text2Command extends utils.Adapter {
                             responseObj.response = res;
 
                             if (obj.callback) {
-                                //noinspection JSUnresolvedFunction, JSUnresolvedVariable
                                 this.sendTo(obj.from, obj.command, responseObj, obj.callback);
                             }
                         }, typeof obj.message === 'object' ? JSON.parse(JSON.stringify(obj.message)) : null, obj.from);
@@ -135,7 +127,6 @@ class Text2Command extends utils.Adapter {
                     break;
 
                 default:
-                    //noinspection JSUnresolvedVariable
                     this.log.warn(`Unknown command: ${obj.command}`);
                     break;
             }
@@ -143,15 +134,12 @@ class Text2Command extends utils.Adapter {
     }
 
     sayIt(text) {
-        //noinspection JSUnresolvedFunction
         this.setStateAsync('response', text || '', true)
             .then(() => {
                 if (text && this.config.sayitInstance) {
-                    //noinspection JSUnresolvedVariable
                     return this.getForeignObjectAsync(this.config.sayitInstance)
                         .then(obj => {
                             if (obj) {
-                                //noinspection JSUnresolvedVariable,JSUnresolvedFunction
                                 return this.setForeignStateAsync(this.config.sayitInstance, text);
                             } else {
                                 this.log.warn('If you want to use sayit functionality, please install sayit or disable it in settings (Answer in id)');
@@ -167,11 +155,9 @@ class Text2Command extends utils.Adapter {
             let task = processQueue[0];
     
             // send task to external processor
-            //noinspection JSUnresolvedVariable,JSUnresolvedFunction
             this.setForeignState(this.config.processorId, JSON.stringify(task));
     
             // wait x seconds for answer
-            //noinspection JSUnresolvedVariable
             processTimeout = setTimeout(() => {
                 processTimeout = null;
     
@@ -179,7 +165,6 @@ class Text2Command extends utils.Adapter {
                 let _task = processQueue.shift();
     
                 // process with rules
-                //noinspection JSUnresolvedVariable
                 processText((_task.withLanguage ? `${_task.language};` : '') + _task.command, _task.callback, null, null, true);
     
                 // process next
@@ -194,20 +179,20 @@ class Text2Command extends utils.Adapter {
         let lang = this.config.language || systemConfig.language || 'en';
         if (cmd === null || cmd === undefined) {
             this.log.error('processText: invalid command!');
-            this.setState('error', 'invalid command', true);
-            //noinspection JSUnresolvedFunction
+            this.setState('error', { val: 'invalid command', ack: true });
+
             return simpleAnswers.sayError(lang, 'processText: invalid command!', null, null, result =>
                 cb(result ? ((withLang ? `${lang};` : '') + result) : ''));
         }
-    
+
         cmd = cmd.toString();
         let originalCmd = cmd;
-    
+
         let withLang = false;
         let ix       = cmd.indexOf(';');
-    
+
         cmd = cmd.toLowerCase();
-    
+
         // extract language
         if (ix !== -1) {
             withLang    = true;
@@ -215,9 +200,8 @@ class Text2Command extends utils.Adapter {
             cmd         = cmd.substring(ix + 1);
             originalCmd = originalCmd.substring(ix + 1);
         }
-    
+
         // if desired processing by javascript
-        //noinspection JSUnresolvedVariable
         if (!afterProcessor && this.config.processorId) {
             let task = messageObj || {};
     
@@ -234,39 +218,30 @@ class Text2Command extends utils.Adapter {
                 this.log.error('External process queue is full. Try to use rules.');
             }
         } else if (afterProcessor) {
-            // noinspection JSUnresolvedVariable
             this.log.warn(`Timeout for external processor: ${this.config.processorId}`);
         }
     
-        // noinspection JSUnresolvedFunction
         let matchedRules = model.findMatched(cmd, rules);
-    
         let result = '';
         let count = matchedRules.length;
     
         for (let m = 0; m < matchedRules.length; m++) {
-            //noinspection JSUnresolvedVariable
             if (model.commands[rules[matchedRules[m]].template] && model.commands[rules[matchedRules[m]].template].extractText) {
-                //noinspection JSUnresolvedFunction,JSUnresolvedVariable
                 cmd = simpleControl.extractText(cmd, originalCmd, rules[matchedRules[m]].words);
             }
     
-            //noinspection JSUnresolvedVariable
             if (commandsCallbacks[rules[matchedRules[m]].template]) {
-                //noinspection JSUnresolvedVariable
                 commandsCallbacks[rules[matchedRules[m]].template](lang, cmd, rules[matchedRules[m]].args, rules[matchedRules[m]].ack, response => {
                     this.log.info(`Response: ${response}`);
     
                     // somehow combine answers
                     if (response) {
-                        //noinspection JSReferencingMutableVariableFromClosure
                         result += (result ? ', ' : '') + response;
                     }
     
                     this.config.writeEveryAnswer && this.setState('response', response, true);
     
                     if (!--count) {
-                        //noinspection JSReferencingMutableVariableFromClosure
                         cb && cb(result ? ((withLang ? `${lang};` : '') + result) : '');
                         cb = null;
                     }
@@ -274,14 +249,12 @@ class Text2Command extends utils.Adapter {
             } else {
                 count--;
                 if (rules[matchedRules[m]].ack) {
-                    //noinspection JSUnresolvedFunction
                     result += (result ? ', ' : '') + simpleAnswers.getRandomPhrase(rules[matchedRules[m]].ack);
                 }
             }
         }
     
         if (!matchedRules.length) {
-            //noinspection JSUnresolvedFunction
             if (!this.config.noNegativeMessage) {
                 simpleAnswers.sayIDontUnderstand(lang, cmd, null, null, result => {
                     cb && cb(result ? ((withLang ? `${lang};` : '') + result) : '');
