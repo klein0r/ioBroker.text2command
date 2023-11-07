@@ -49,11 +49,11 @@ class Text2Command extends utils.Adapter {
         const obj = await this.getForeignObjectAsync('system.config');
 
         systemConfig = (obj ? obj.common : {}) || {};
-        simpleControl.init(systemConfig, adapter);
+        simpleControl.init(systemConfig, this);
 
         // read all enums
         const enums = await this.getEnumsAsync('');
-        devicesControl.init(enums, adapter);
+        devicesControl.init(enums, this);
 
         await this.subscribeForeignObjectsAsync('enum.*');
 
@@ -70,7 +70,7 @@ class Text2Command extends utils.Adapter {
      */
     async onStateChange(id, state) {
         if (state && !state.ack && state.val && id === this.namespace + '.text') {
-            processText(state.val.toString(), sayIt);
+            this.processText(state.val.toString(), this.sayIt);
         } else if (state && id === this.config.processorId && state.ack) {
             // answer received
             if (processTimeout) {
@@ -82,9 +82,9 @@ class Text2Command extends utils.Adapter {
                         task.callback((task.withLanguage ? `${task.language};` : '') + state.val);
                     }
                 } else {
-                    processText((task.withLanguage ? `${task.language};` : '') + task.command, task.callback, null, null, true);
+                    this.processText((task.withLanguage ? `${task.language};` : '') + task.command, task.callback, null, null, true);
                 }
-                setImmediate(useExternalProcessor);
+                setImmediate(this.useExternalProcessor);
             }
         }
     }
@@ -111,7 +111,7 @@ class Text2Command extends utils.Adapter {
             switch (obj.command) {
                 case 'send':
                     if (obj.message) {
-                        processText(typeof obj.message === 'object' ? obj.message.text : obj.message, res => {
+                        this.processText(typeof obj.message === 'object' ? obj.message.text : obj.message, res => {
                             let responseObj = JSON.parse(JSON.stringify(obj.message));
                             if (typeof responseObj !== 'object') {
                                 responseObj = {text: responseObj};
@@ -165,10 +165,10 @@ class Text2Command extends utils.Adapter {
                 let _task = processQueue.shift();
 
                 // process with rules
-                processText((_task.withLanguage ? `${_task.language};` : '') + _task.command, _task.callback, null, null, true);
+                this.processText((_task.withLanguage ? `${_task.language};` : '') + _task.command, _task.callback, null, null, true);
 
                 // process next
-                useExternalProcessor();
+                this.useExternalProcessor();
             }, this.config.processorTimeout || 1000);
         }
     }
@@ -213,7 +213,7 @@ class Text2Command extends utils.Adapter {
 
             if (processQueue.length < 100) {
                 processQueue.push(task);
-                return useExternalProcessor();
+                return this.useExternalProcessor();
             } else {
                 this.log.error('External process queue is full. Try to use rules.');
             }

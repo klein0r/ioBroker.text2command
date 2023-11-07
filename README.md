@@ -3,7 +3,6 @@
 
 ![Number of Installations](http://iobroker.live/badges/text2command-installed.svg) ![Number of Installations](http://iobroker.live/badges/text2command-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.text2command.svg)](https://www.npmjs.com/package/iobroker.text2command)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.text2command.svg)](https://www.npmjs.com/package/iobroker.text2command)
-[![Tests](https://travis-ci.org/ioBroker/ioBroker.text2command.svg?branch=master)](https://travis-ci.org/ioBroker/ioBroker.text2command)
 
 [![NPM](https://nodei.co/npm/iobroker.text2command.png?downloads=true)](https://nodei.co/npm/iobroker.text2command/)
 
@@ -19,8 +18,8 @@ If you define **Answer to ID**, the answer will be written in this ID too. This 
 
 You can send a message via `sendTo` from javascript. The answer will come in the message back:
 
-```
-sendTo('text2command', 'Switch light in kitchen on', function (err, response) {
+```js
+sendTo('text2command', 'Switch light in kitchen on', (err, response) => {
     console.log('Response is: ' + response);
 });
 ```
@@ -136,9 +135,6 @@ Answer is customizable. Default: `Inside temperature is %s %u`
 ### Switch on/off by function
 This command reads information from enums. It uses `enum.functions` to find type of device (e.g. light, alarm, music) and `enum.rooms` to detect room name.
 
-Example in german:
-![Enums](img/enums.png)
-
 Keywords to switch on are: *switch on*, e.g. `switch rear light in bath on`
 
 Keywords to switch off are: *switch off*, e.g. `switch light in living room off`
@@ -222,10 +218,10 @@ There is a possibility to use javascript engine to process commands in `text2com
 To do that you must specify some state in "Processor state ID" (Advanced settings) and to listen on this state in some JS or Blockly script.
 You can create some state manually in admin or in script. Processing script can look like this one:
 
-```
+```js
 createState("textProcessor", '', function () {
     // text2command writes the value with ack=false. Change "any" is important too, to process repeated commands.
-    on({id: "javascript.0.textProcessor", ack: false, change: 'any'}, function (obj) {
+    on({ id: 'javascript.0.textProcessor', ack: false, change: 'any' }, (obj) => {
          var task = JSON.parse(obj.state.val);
          // value looks like
          // {
@@ -235,11 +231,11 @@ createState("textProcessor", '', function () {
          // }
          // response to text2command with ack=true
          if (task.command === 'switch light on') {
-            setState("hm-rpc.0.light", true);
-            setState("javascript.0.textProcessor", 'light is on', true);
+            setState('hm-rpc.0.light', true);
+            setState('javascript.0.textProcessor', 'light is on', true);
          } else {
             // let it process with predefined rules
-            setState("javascript.0.textProcessor", '', true);
+            setState('javascript.0.textProcessor', '', true);
          }
     });
 });
@@ -261,6 +257,11 @@ If activated so by every command (no matter if the request came via state or sen
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+NodeJS 16.x is required
+
+* (klein0r) Code refactoring
+
 ### 3.0.2 (2023-02-27)
 * (bluefox) Corrected link from admin
 
