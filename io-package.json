@@ -91,7 +91,6 @@
         "zh-cn": "在输出前检查 sayit 实例的存在"
       }
     },
-    "title": "Text to command",
     "titleLang": {
       "en": "Text to command",
       "de": "Text zu Kommandos",
@@ -102,47 +101,48 @@
       "it": "Testo da comandare",
       "es": "Texto para mandar",
       "pl": "Tekst do polecenia",
+      "uk": "Текст команди",
       "zh-cn": "文字指令"
     },
     "desc": {
-      "en": "This adapter allows to convert text to commands",
-      "de": "Dieser Adapter ermöglicht es, Text in Befehle zu konvertieren",
-      "ru": "Этот адаптер позволяет преобразовывать текст в команды",
-      "pt": "Este adaptador permite converter texto em comandos",
-      "nl": "Met deze adapter kunt u tekst converteren naar opdrachten",
-      "fr": "Cet adaptateur permet de convertir du texte en commandes",
-      "it": "Questo adattatore consente di convertire il testo in comandi",
-      "es": "Este adaptador permite convertir texto a comandos",
-      "pl": "Ten adapter umożliwia konwertowanie tekstu na polecenia",
-      "zh-cn": "该适配器允许将文本转换为命令"
+      "en": "Converts text to commands",
+      "de": "Konvertiert Text zu Befehlen",
+      "ru": "Преобразует текст в команды",
+      "pt": "Converte texto em comandos",
+      "nl": "Bekers sms'en naar commando's",
+      "fr": "Convertit le texte aux commandes",
+      "it": "Converte il testo in comandi",
+      "es": "Convertir texto en comandos",
+      "pl": "Przetłumaczone teksty do dowodzenia",
+      "uk": "Перетворення тексту в команди",
+      "zh-cn": "阻止指挥案文"
     },
     "authors": [
-      "bluefox <dogafox@gmail.com>"
+      "bluefox <dogafox@gmail.com>",
+      "Matthias Kleine <info@haus-automatisierung.com>"
     ],
-    "license": "MIT",
-    "platform": "Javascript/Node.js",
-    "mode": "daemon",
-    "readme": "https://github.com/ioBroker/ioBroker.text2command/blob/master/README.md",
-    "loglevel": "info",
-    "icon": "text2command.png",
     "keywords": [
       "text",
       "commands"
     ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "main.js",
+    "icon": "text2command.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.text2command/master/admin/text2command.png",
+    "readme": "https://github.com/ioBroker/ioBroker.text2command/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "logic",
+    "compact": true,
+    "connectionType": "local",
+    "dataSource": "push",
+    "messagebox": true,
     "adminUI": {
       "config": "none",
       "tab": "materialize"
     },
-    "connectionType": "local",
-    "dataSource": "push",
-    "messagebox": true,
-    "eraseOnUpload": true,
-    "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.text2command/master/admin/text2command.png",
-    "localLink": "/adapter/text2command/tab.html?instance=%instance%",
-    "type": "logic",
-    "noConfig": true,
-    "compact": true,
     "adminTab": {
       "name": {
         "en": "Commands",
@@ -158,6 +158,7 @@
       },
       "singleton": false,
       "ignoreConfigUpdate": true,
+      "link": "",
       "fa-icon": "chat"
     },
     "docs": {
@@ -168,6 +169,7 @@
         "docs/de/README.md"
       ]
     },
+    "eraseOnUpload": true,
     "globalDependencies": [
       {
         "admin": ">=6.0.0"
@@ -175,7 +177,7 @@
     ],
     "dependencies": [
       {
-        "js-controller": ">=2.0.0"
+        "js-controller": ">=3.3.22"
       }
     ],
     "plugins": {
@@ -239,12 +241,23 @@
       "_id": "text",
       "type": "state",
       "common": {
-        "name": "Text to process",
+        "name": {
+          "en": "Text to process",
+          "de": "Text zum Verarbeiten",
+          "ru": "Текст для обработки",
+          "pt": "Texto para processo",
+          "nl": "Text om te verwerken",
+          "fr": "Texte à traiter",
+          "it": "Testo a processo",
+          "es": "Texto al proceso",
+          "pl": "Tekst do procesu",
+          "uk": "Текст на процес",
+          "zh-cn": "进程案文"
+        },
         "type": "string",
         "role": "text",
         "read": true,
-        "write": true,
-        "desc": "Write your text here with ack=false, and you will get answer with ack=true"
+        "write": true
       },
       "native": {}
     },
@@ -252,12 +265,23 @@
       "_id": "response",
       "type": "state",
       "common": {
-        "name": "Answer on requested question",
+        "name": {
+          "en": "Answer on requested question",
+          "de": "Antwort zur gestellten Anfrage",
+          "ru": "Ответ на заданный вопрос",
+          "pt": "Resposta na pergunta solicitada",
+          "nl": "Antwoord op verzoek",
+          "fr": "Réponse à la question demandée",
+          "it": "Risposta alla domanda richiesta",
+          "es": "Respuesta a la pregunta solicitada",
+          "pl": "Answer do pytania",
+          "uk": "Відповідь на запит",
+          "zh-cn": "对请求问题的答复"
+        },
         "type": "string",
         "role": "text",
         "read": true,
-        "write": false,
-        "desc": "Answer for written into text2command.0.text text"
+        "write": false
       },
       "native": {}
     },
@@ -265,7 +289,19 @@
       "_id": "error",
       "type": "state",
       "common": {
-        "name": "Error text",
+        "name": {
+          "en": "Error text",
+          "de": "Fehlertext",
+          "ru": "Текст ошибки",
+          "pt": "Texto de erro",
+          "nl": "Error sms",
+          "fr": "Texte d ' erreur",
+          "it": "Testo di errore",
+          "es": "Texto del error",
+          "pl": "Error",
+          "uk": "Текст повідомлення",
+          "zh-cn": "案文"
+        },
         "type": "string",
         "role": "value.error",
         "read": true,

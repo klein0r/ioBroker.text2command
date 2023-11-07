@@ -1,7 +1,9 @@
 'use strict';
 
-const utils           = require('@iobroker/adapter-core');
-const adapterName     = require('./package.json').name.split('.').pop();
+/*
+ * Created with @iobroker/create-adapter v2.5.0
+ */
+const utils = require('@iobroker/adapter-core');
 
 const model           = require('./admin/langModel');
 const devicesControl  = require('./lib/devicesControl');
@@ -16,10 +18,14 @@ let processTimeout  = null;
 let processQueue    = [];
 
 class Text2Command extends utils.Adapter {
+
+    /**
+     * @param {Partial<utils.AdapterOptions>} [options={}]
+     */
     constructor(options) {
         super({
             ...options,
-            name: adapterName,
+            name: 'text2command',
             useFormatDate: true,
         });
 
@@ -287,11 +293,10 @@ class Text2Command extends utils.Adapter {
     }
 }
 
-// @ts-ignore parent is a valid property on module
-if (module.parent) {
+if (require.main !== module) {
     // Export the constructor in compact mode
     /**
-     * @param {Partial<ioBroker.AdapterOptions>} [options={}]
+     * @param {Partial<utils.AdapterOptions>} [options={}]
      */
     module.exports = (options) => new Text2Command(options);
 } else {
