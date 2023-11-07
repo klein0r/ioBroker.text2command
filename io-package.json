@@ -160,6 +160,19 @@
       "ignoreConfigUpdate": true,
       "fa-icon": "chat"
     },
+    "docs": {
+      "en": [
+        "docs/en/README.md"
+      ],
+      "de": [
+        "docs/de/README.md"
+      ]
+    },
+    "globalDependencies": [
+      {
+        "admin": ">=6.0.0"
+      }
+    ],
     "dependencies": [
       {
         "js-controller": ">=2.0.0"
